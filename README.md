@@ -24,10 +24,13 @@ The service is configured via the `appsettings.json` file. You can define the ta
 
 ```json
 {
-  "Logging": {
-    "LogLevel": {
+  "Serilog": {
+    "MinimumLevel": {
       "Default": "Information",
-      "Microsoft.Hosting.Lifetime": "Information"
+      "Override": {
+        "Quartz": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
     }
   },
   "FileProcessor": {
