@@ -1,6 +1,7 @@
 using Nager.FileCompressService.Jobs;
 using Nager.FileCompressService.Models;
 using Nager.FileCompressService.Optimizer;
+using Nager.FileCompressService.Services;
 using Quartz;
 using Serilog;
 
@@ -36,6 +37,7 @@ try
 
     builder.Services.AddTransient<IImageOptimizer, ImageSharpImageOptimizer>();
     //builder.Services.AddTransient<IImageOpimizer, SkiaImageOpimizer>();
+    builder.Services.AddTransient<IImageCompressService, ImageCompressService>();
 
     builder.Services.AddQuartz(q =>
     {
