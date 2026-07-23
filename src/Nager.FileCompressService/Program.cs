@@ -37,8 +37,9 @@ try
 
     builder.Services.AddTransient<IImageOptimizer, ImageSharpImageOptimizer>();
     //builder.Services.AddTransient<IImageOpimizer, SkiaImageOpimizer>();
-    builder.Services.AddTransient<IFileCompressionHistoryService, NtfsAdsFileCompressionHistoryService>();
-    builder.Services.AddTransient<IImageCompressService, ImageCompressService>();
+    //builder.Services.AddTransient<IFileCompressionHistoryService, NtfsAdsFileCompressionHistoryService>();
+    builder.Services.AddTransient<IFileCompressionHistoryService, SqliteFileCompressionHistoryService>();
+    builder.Services.AddTransient<IImageCompressionService, ImageCompressionService>();
 
     builder.Services.AddQuartz(q =>
     {

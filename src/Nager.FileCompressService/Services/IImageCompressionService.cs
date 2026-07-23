@@ -2,7 +2,7 @@
 
 namespace Nager.FileCompressService.Services
 {
-    public interface IImageCompressService
+    public interface IImageCompressionService
     {
         Task<CompressSummary[]> ProcessDirectoryAsync(
             string directoryPath,

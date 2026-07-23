@@ -10,23 +10,23 @@ namespace Nager.FileCompressService.Services
     /// <summary>
     /// Provides services for scanning directories and executing image compression and image optimization tasks.
     /// </summary>
-    public class ImageCompressService : IImageCompressService
+    public class ImageCompressionService : IImageCompressionService
     {
-        private readonly ILogger<ImageCompressService> _logger;
+        private readonly ILogger<ImageCompressionService> _logger;
         private readonly FileProcessorOptions _options;
         private readonly IImageOptimizer _imageOptimizer;
         private readonly IFileCompressionHistoryService _fileCompressionHistoryService;
         private readonly EnumerationOptions _enumerationOptions;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImageCompressService"/> class.
+        /// Initializes a new instance of the <see cref="ImageCompressionService"/> class.
         /// </summary>
         /// <param name="logger">The logger instance used for tracking the processing execution.</param>
         /// <param name="options">The options accessor containing configuration for directory paths, parallelism, and compression criteria.</param>
         /// <param name="imageOptimizer">The optimization engine responsible for executing the compression algorithms.</param>
         /// <param name="fileCompressionHistoryService">The optimization engine responsible for executing the compression algorithms.</param>
-        public ImageCompressService(
-            ILogger<ImageCompressService> logger,
+        public ImageCompressionService(
+            ILogger<ImageCompressionService> logger,
             IOptions<FileProcessorOptions> options,
             IImageOptimizer imageOptimizer,
             IFileCompressionHistoryService fileCompressionHistoryService)
