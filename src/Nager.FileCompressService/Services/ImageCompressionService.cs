@@ -15,6 +15,7 @@ namespace Nager.FileCompressService.Services
         private readonly ILogger<ImageCompressService> _logger;
         private readonly FileProcessorOptions _options;
         private readonly IImageOptimizer _imageOptimizer;
+        private readonly IFileCompressionHistoryService _fileCompressionHistoryService;
         private readonly EnumerationOptions _enumerationOptions;
 
         /// <summary>
@@ -23,14 +24,17 @@ namespace Nager.FileCompressService.Services
         /// <param name="logger">The logger instance used for tracking the processing execution.</param>
         /// <param name="options">The options accessor containing configuration for directory paths, parallelism, and compression criteria.</param>
         /// <param name="imageOptimizer">The optimization engine responsible for executing the compression algorithms.</param>
+        /// <param name="fileCompressionHistoryService">The optimization engine responsible for executing the compression algorithms.</param>
         public ImageCompressService(
             ILogger<ImageCompressService> logger,
             IOptions<FileProcessorOptions> options,
-            IImageOptimizer imageOptimizer)
+            IImageOptimizer imageOptimizer,
+            IFileCompressionHistoryService fileCompressionHistoryService)
         {
             this._logger = logger;
             this._options = options.Value;
             this._imageOptimizer = imageOptimizer;
+            this._fileCompressionHistoryService = fileCompressionHistoryService;
 
             this._enumerationOptions = new EnumerationOptions
             {
@@ -190,9 +194,7 @@ namespace Nager.FileCompressService.Services
                 };
             }
 
-            var adsStreamName = $"nagerfilecompress";
-            var adsPath = $"{filePath}:{adsStreamName}";
-            if (File.Exists(adsPath))
+            if (await this._fileCompressionHistoryService.IsCompressedAsync(filePath, cancellationToken))
             {
                 return new FileReport
                 {
@@ -210,8 +212,8 @@ namespace Nager.FileCompressService.Services
                     quality: this._options.ImageOptimizer.Quality,
                     analyzeOnly: this._options.AnalyzeOnly);
 
-                File.Create(adsPath).Close();
-                File.Create($"{newImagePath}:{adsStreamName}").Close();
+                await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
+                await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
 
                 return new FileReport
                 {
@@ -229,8 +231,8 @@ namespace Nager.FileCompressService.Services
                     quality: this._options.ImageOptimizer.Quality,
                     analyzeOnly: this._options.AnalyzeOnly);
 
-                File.Create(adsPath).Close();
-                File.Create($"{newImagePath}:{adsStreamName}").Close();
+                await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
+                await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
 
                 return new FileReport
                 {

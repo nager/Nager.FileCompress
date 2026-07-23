@@ -11,7 +11,7 @@ namespace Nager.FileCompressService.Jobs
     public class FileCompressJob : IJob
     {
         private readonly ILogger<FileCompressJob> _logger;
-        private readonly IImageCompressService _imageCompressService;
+        private readonly IImageCompressionService _imageCompressService;
         private readonly FileProcessorOptions _fileProcessorOptions;
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Nager.FileCompressService.Jobs
         /// <param name="imageCompressService">The service responsible for executing the file compression operations.</param>
         public FileCompressJob(
             ILogger<FileCompressJob> logger,
-            IImageCompressService imageCompressService,
+            IImageCompressionService imageCompressService,
             IOptions<FileProcessorOptions> fileProcessorOptions)
         {
             this._logger = logger;
