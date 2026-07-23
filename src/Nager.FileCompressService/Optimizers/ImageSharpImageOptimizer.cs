@@ -76,6 +76,7 @@ namespace Nager.FileCompressService.Optimizer
             };
 
             long compressedFileSize = 0;
+            var newFileCreated = false;
 
             if (analyzeOnly)
             {
@@ -99,6 +100,8 @@ namespace Nager.FileCompressService.Optimizer
 
                     compressedFileSize = new FileInfo(outputPath).Length;
                     FileTimeHelper.SyncFiles(inputPath, outputPath);
+
+                    newFileCreated = true;
                 }
             }
 
@@ -107,6 +110,7 @@ namespace Nager.FileCompressService.Optimizer
                 CompressDescription = compressDescription,
                 SourceSize = originalFileSize,
                 CompressedSize = compressedFileSize,
+                NewFileCreated = newFileCreated,
             };
         }
 

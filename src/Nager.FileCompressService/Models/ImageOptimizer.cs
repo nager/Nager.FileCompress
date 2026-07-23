@@ -27,11 +27,11 @@
         public string OutputFormat { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the original source files should be deleted after successful compression.
+        /// Gets or sets a value indicating whether the original source files should be kept after successful compression.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> if original files should be purged post-compression; otherwise, <see langword="false"/>.
+        /// <see langword="true"/> if original files should be preserved post-compression; otherwise, <see langword="false"/>.
         /// </value>
-        public bool DeleteOriginal { get; set; }
+        public bool KeepOriginal { get; set; }
     }
 }

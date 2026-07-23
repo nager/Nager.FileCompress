@@ -79,7 +79,7 @@ try
     string extensionsInfo = "None configured";
     string qualityInfo = "N/A";
     string formatInfo = "Keep Original Format";
-    string deleteInfo = "No (Keep original files)";
+    string keepInfo = "No (Original files will be DELETED after processing!)";
 
     if (options.ImageOptimizer != null)
     {
@@ -97,9 +97,9 @@ try
             formatInfo = opt.OutputFormat.ToUpperInvariant();
         }
 
-        if (opt.DeleteOriginal)
+        if (opt.KeepOriginal)
         {
-            deleteInfo = "YES (Original files will be DELETED after processing!)";
+            keepInfo = "YES (Original files will be NOT DELETED)";
         }
     }
 
@@ -115,7 +115,7 @@ try
         " [Target Extensions]      {Extensions}\n" +
         " [Compression Quality]    {Quality}\n" +
         " [Output Format]          {OutputFormat}\n" +
-        " [Purge Originals]        {DeleteOriginal}\n" +
+        " [Keep Originals]        {KeepOriginal}\n" +
         "======================================================================",
         options.AnalyzeOnly ? "ANALYZE ONLY (Dry Run - No files will be modified)" : "PRODUCTION (Files will be optimized)",
         string.IsNullOrEmpty(options.SourceDirectory) ? "NOT SET (Service might fail)" : options.SourceDirectory,
@@ -123,7 +123,7 @@ try
         extensionsInfo,
         qualityInfo,
         formatInfo,
-        deleteInfo
+        keepInfo
     );
     // --- CONFIGURATION LOGGING END ---
 

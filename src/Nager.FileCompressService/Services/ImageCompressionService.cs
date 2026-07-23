@@ -202,9 +202,11 @@ namespace Nager.FileCompressService.Services
                 };
             }
 
+            var optimizedSuffix = "_optimized";
+
             if (this._options.ImageOptimizer.OutputFormat == "webp")
             {
-                var newImagePath = $"{outputFilePathWithoutExtension}_optimized.webp";
+                var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.webp";
 
                 var compressResult = await this._imageOptimizer.CompressWebpAsync(
                     filePath,
@@ -215,6 +217,18 @@ namespace Nager.FileCompressService.Services
                 await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
                 await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
 
+                if (this._options.ImageOptimizer.KeepOriginal == false)
+                {
+                    File.Delete(filePath);
+
+                    var movePath = Path.Combine(
+                        Path.GetDirectoryName(newImagePath)!,
+                        fileName + Path.GetExtension(newImagePath)
+                    );
+
+                    File.Move(newImagePath, movePath);
+                }
+
                 return new FileReport
                 {
                     FilePath = filePath,
@@ -223,7 +237,7 @@ namespace Nager.FileCompressService.Services
             }
             else if (this._options.ImageOptimizer.OutputFormat == "jpeg")
             {
-                var newImagePath = $"{outputFilePathWithoutExtension}_optimized.jpg";
+                var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.jpg";
 
                 var compressResult = await this._imageOptimizer.CompressJpegAsync(
                     filePath,
@@ -233,6 +247,19 @@ namespace Nager.FileCompressService.Services
 
                 await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
                 await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
+
+                if (this._options.ImageOptimizer.KeepOriginal == false &&
+                    compressResult.NewFileCreated)
+                {
+                    File.Delete(filePath);
+
+                    var movePath = Path.Combine(
+                        Path.GetDirectoryName(newImagePath)!,
+                        fileName + Path.GetExtension(newImagePath)
+                    );
+
+                    File.Move(newImagePath, movePath);
+                }
 
                 return new FileReport
                 {

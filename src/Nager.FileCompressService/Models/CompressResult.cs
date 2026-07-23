@@ -44,5 +44,10 @@
                 return Math.Round((double)Savings / SourceSize * 100, 2);
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a new compressed file was created during the process.
+        /// </summary>
+        public bool NewFileCreated { get; set; }
     }
 }

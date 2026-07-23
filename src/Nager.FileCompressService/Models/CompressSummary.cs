@@ -31,7 +31,7 @@
         /// <value>
         /// The difference between <see cref="TotalSourceSize"/> and <see cref="TotalCompressedSize"/>.
         /// </value>
-        public long TotalSavingsSize => TotalSourceSize - TotalCompressedSize;
+        public long TotalSavingsSize => TotalCompressedSize == 0 ? 0 : TotalSourceSize - TotalCompressedSize;
 
         /// <summary>
         /// Gets the total percentage of storage space saved relative to the combined original file size.
@@ -40,7 +40,7 @@
         /// The overall reduction percentage rounded to two decimal places. 
         /// Returns 0 if <see cref="TotalSourceSize"/> is 0.
         /// </value>
-        public double TotalSavingsPercentage => TotalSourceSize == 0
+        public double TotalSavingsPercentage => TotalCompressedSize == 0
             ? 0
             : Math.Round((double)TotalSavingsSize / TotalSourceSize * 100, 2);
     }
