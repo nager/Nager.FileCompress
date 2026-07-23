@@ -44,7 +44,7 @@ The service is configured via the `appsettings.json` file. You can define the ta
       ],
       "Quality": 80,
       "OutputFormat": "jpeg",
-      "DeleteOriginal": true
+      "KeepOriginal": true
     }
   }
 }
@@ -61,7 +61,7 @@ The service is configured via the `appsettings.json` file. You can define the ta
 | `FileProcessor.ImageOptimizer.FileExtensions` | `string[]` | An array of file extensions to include in the scan (e.g., `[".jpg", ".jpeg"]`). |
 | `FileProcessor.ImageOptimizer.Quality` | `int` | The quality level for the optimized image (typically between `70` and `100`). |
 | `FileProcessor.ImageOptimizer.OutputFormat` | `string` | The target format for the optimized image. Supported options include `jpeg` and `webp`. |
-| `FileProcessor.ImageOptimizer.DeleteOriginal` | `bool` | If `true`, the original file will be removed after a successful optimization/replacement. |
+| `FileProcessor.ImageOptimizer.KeepOriginal` | `bool` | If `true`, the original file will be not removed after a successful optimization. |
 
 ---
 
