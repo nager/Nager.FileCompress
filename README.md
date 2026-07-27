@@ -1,3 +1,5 @@
+![Nager.FileCompress](/docs/banner.png)
+
 # Nager.FileCompress
 
 `Nager.FileCompress` is a lightweight, efficient Windows Service designed to automatically scan directories for images and optimize their file size to save storage space. 
