@@ -4,6 +4,84 @@ using Nager.FileCompressService.Optimizer;
 using Nager.FileCompressService.Services;
 using Quartz;
 using Serilog;
+using System.Diagnostics;
+using System.Runtime.Versioning;
+using System.Security.Principal;
+
+if (args.Length > 0)
+{
+    if (!OperatingSystem.IsWindows())
+    {
+        return;
+    }
+
+    [SupportedOSPlatform("windows")]
+    static bool IsAdministrator()
+    {
+        using var identity = WindowsIdentity.GetCurrent();
+        var principal = new WindowsPrincipal(identity);
+        return principal.IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    var exePath = Process.GetCurrentProcess().MainModule!.FileName;
+    var serviceName = "Nager.FileCompressService";
+
+    static void showHelp()
+    {
+        Console.WriteLine("""
+                ==========================================================
+                Nager FileCompress Service - Command Line Setup Options
+                ==========================================================
+
+                Usage:
+                  Nager.FileCompressService.exe [option]
+
+                Options:
+                  /install     Registers and starts the Windows Service.
+                  /uninstall   Stops and removes the Windows Service.
+                  /? , /help   Displays this help screen.
+
+                Note: /install and /uninstall require Administrator privileges.
+                """);
+    }
+
+    if (args[0].Equals("/?", StringComparison.OrdinalIgnoreCase))
+    {
+        showHelp();
+        return;
+    }
+    else if (args[0].Equals("/help", StringComparison.OrdinalIgnoreCase))
+    {
+        showHelp();
+        return;
+    }
+    else if (args[0].Equals("/install", StringComparison.OrdinalIgnoreCase))
+    {
+        if (!IsAdministrator())
+        {
+            Console.WriteLine("Administrator privileges are required to run this command.");
+            return;
+        }
+
+        // Register and start the service
+        Process.Start("sc.exe", $"create \"{serviceName}\" binPath= \"{exePath}\" start= auto")?.WaitForExit();
+        Process.Start("sc.exe", $"start \"{serviceName}\"")?.WaitForExit();
+        return;
+    }
+    else if (args[0].Equals("/uninstall", StringComparison.OrdinalIgnoreCase))
+    {
+        if (!IsAdministrator())
+        {
+            Console.WriteLine("Administrator privileges are required to run this command.");
+            return;
+        }
+
+        // Stop and delete the service
+        Process.Start("sc.exe", $"stop \"{serviceName}\"")?.WaitForExit();
+        Process.Start("sc.exe", $"delete \"{serviceName}\"")?.WaitForExit();
+        return;
+    }
+}
 
 try
 {
