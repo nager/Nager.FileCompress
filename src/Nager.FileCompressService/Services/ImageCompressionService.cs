@@ -153,7 +153,6 @@ namespace Nager.FileCompressService.Services
             }
 
             var fileName = Path.GetFileNameWithoutExtension(filePath);
-            var fileNameExtension = Path.GetExtension(filePath);
             var outputFilePathWithoutExtension = Path.Combine(directoryPath, $"{fileName}");
 
             if (this._options.AnalyzeOnly)
