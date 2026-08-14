@@ -20,6 +20,20 @@ The service processes images safely: it preserves original file metadata (creati
 
 ---
 
+## Command Line Options (CLI)
+
+`Nager.FileCompressService.exe` supports command-line parameters to streamline service administration directly through the binary.
+
+> **Note:** Administrative privileges (Run as Administrator) are required for installing and uninstalling the service.
+
+| Parameter | Alias | Admin Required | Description |
+| --- | --- | --- | --- |
+| `/install` | – | **Yes** | Registers `Nager.FileCompress` as an automatic Windows Service and immediately starts it. |
+| `/uninstall` | – | **Yes** | Gracefully stops the running `Nager.FileCompress` service and removes it from the system. |
+| `/help` | `/?` | No | Displays available command-line arguments and help information. |
+
+---
+
 ## Configuration
 
 The service is configured via the `appsettings.json` file. You can define the target directory, file types to scan, and the operational mode.
