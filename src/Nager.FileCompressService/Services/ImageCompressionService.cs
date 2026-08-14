@@ -53,6 +53,11 @@ namespace Nager.FileCompressService.Services
         {
             var compressReports = new List<CompressSummary>();
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return [.. compressReports];
+            }
+
             var compressSummaryFiles = await this.ProcessFilesAsync(directoryPath, fileExtensions, cancellationToken);
             compressReports.AddRange(compressSummaryFiles);
 
@@ -132,6 +137,14 @@ namespace Nager.FileCompressService.Services
         {
             var directoryPath = Path.GetDirectoryName(filePath);
             if (string.IsNullOrWhiteSpace(directoryPath))
+            {
+                return new FileReport
+                {
+                    FilePath = filePath
+                };
+            }
+
+            if (this._options.ImageOptimizer is null)
             {
                 return new FileReport
                 {

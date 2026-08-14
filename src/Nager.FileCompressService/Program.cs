@@ -141,7 +141,7 @@ try
 
     builder.Services.AddQuartzHostedService(options =>
     {
-        options.WaitForJobsToComplete = true;
+        options.WaitForJobsToComplete = false;
     });
 
     var host = builder.Build();
