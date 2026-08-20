@@ -70,7 +70,7 @@ namespace Nager.FileCompressService.Services
 
             foreach (var compressSummaryReport in compressReports)
             {
-                if (compressSummaryReport.TotalSavingsPercentage >= 20)
+                if (compressSummaryReport.TotalSavingsPercentage <= 20)
                 {
                     continue;
                 }
