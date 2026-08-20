@@ -70,6 +70,11 @@ namespace Nager.FileCompressService.Services
 
             foreach (var compressSummaryReport in compressReports)
             {
+                if (compressSummaryReport.TotalSavingsSize < 0)
+                {
+                    continue;
+                }
+
                 this._logger.LogInformation($"{compressSummaryReport.Path} - {compressSummaryReport.CompressDescription}, possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
             }
 
@@ -81,7 +86,7 @@ namespace Nager.FileCompressService.Services
             string[] fileExtensions,
             CancellationToken cancellationToken = default)
         {
-            this._logger.LogInformation($"Process - {directory}");
+            this._logger.LogDebug($"Process - {directory}");
 
             var maxDegreeOfParallelism = this._options.MaxDegreeOfParallelism == 0 ? Environment.ProcessorCount : this._options.MaxDegreeOfParallelism;
             var fileReports = new ConcurrentBag<FileReport>();
