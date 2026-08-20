@@ -70,12 +70,12 @@ namespace Nager.FileCompressService.Services
 
             foreach (var compressSummaryReport in compressReports)
             {
-                if (compressSummaryReport.TotalSavingsSize < 0)
+                if (compressSummaryReport.TotalSavingsPercentage >= 20)
                 {
                     continue;
                 }
 
-                this._logger.LogInformation($"{compressSummaryReport.Path} - {compressSummaryReport.CompressDescription}, possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
+                this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
             }
 
             return [.. compressReports];
