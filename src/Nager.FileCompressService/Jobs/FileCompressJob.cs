@@ -49,6 +49,7 @@ namespace Nager.FileCompressService.Jobs
 
             await this._imageCompressService.ProcessDirectoryAsync(
                 this._fileProcessorOptions.SourceDirectory,
+                0,
                 this._fileProcessorOptions.ImageOptimizer.FileExtensions,
                 context.CancellationToken);
 

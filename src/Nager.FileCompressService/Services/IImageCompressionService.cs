@@ -6,6 +6,7 @@ namespace Nager.FileCompressService.Services
     {
         Task<CompressSummary[]> ProcessDirectoryAsync(
             string directoryPath,
+            int currentDepth,
             string[] fileExtensions,
             CancellationToken cancellationToken = default);
     }

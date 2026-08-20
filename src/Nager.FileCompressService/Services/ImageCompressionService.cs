@@ -48,6 +48,7 @@ namespace Nager.FileCompressService.Services
         /// <inheritdoc/>
         public async Task<CompressSummary[]> ProcessDirectoryAsync(
             string directoryPath,
+            int currentDepth,
             string[] fileExtensions,
             CancellationToken cancellationToken = default)
         {
@@ -64,18 +65,21 @@ namespace Nager.FileCompressService.Services
             var directories = Directory.EnumerateDirectories(directoryPath);
             foreach (var directory in directories)
             {
-                var compressSummaryDirectory = await this.ProcessDirectoryAsync(directory, fileExtensions, cancellationToken);
+                var compressSummaryDirectory = await this.ProcessDirectoryAsync(directory, ++currentDepth, fileExtensions, cancellationToken);
                 compressReports.AddRange(compressSummaryDirectory);
             }
 
-            foreach (var compressSummaryReport in compressReports)
+            if (currentDepth == 1)
             {
-                if (compressSummaryReport.TotalSavingsPercentage <= 20)
+                foreach (var compressSummaryReport in compressReports)
                 {
-                    continue;
-                }
+                    if (compressSummaryReport.TotalSavingsPercentage <= 20)
+                    {
+                        continue;
+                    }
 
-                this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
+                    this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
+                }
             }
 
             return [.. compressReports];
