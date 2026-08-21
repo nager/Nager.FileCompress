@@ -65,16 +65,29 @@ namespace Nager.FileCompressService.Services
             var directories = Directory.EnumerateDirectories(directoryPath);
             foreach (var directory in directories)
             {
-                var compressSummaryDirectory = await this.ProcessDirectoryAsync(directory, ++currentDepth, fileExtensions, cancellationToken);
+                var compressSummaryDirectory = await this.ProcessDirectoryAsync(directory, currentDepth + 1, fileExtensions, cancellationToken);
                 compressReports.AddRange(compressSummaryDirectory);
             }
 
             if (currentDepth <= 2)
             {
-                foreach (var compressSummaryReport in compressReports)
+                var totalSavingsSize = compressReports.Sum(o => o.TotalSavingsSize);
+                var totalSourceSize = compressReports.Sum(o => o.TotalSourceSize);
+                var savingsPercentage = Math.Round((double)totalSavingsSize / totalSourceSize * 100, 2);
+
+                if (savingsPercentage > 0)
                 {
-                    this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
+                    this._logger.LogInformation($"{currentDepth} {directoryPath} - possible saving {FileSizeHelper.FormatBytes(totalSavingsSize)} [{savingsPercentage}%]");
                 }
+                else
+                {
+                    this._logger.LogInformation($"{currentDepth} {directoryPath} - no savings possible");
+                }
+
+                //foreach (var compressSummaryReport in compressReports)
+                //{
+                //    this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {currentDepth} {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
+                //}
             }
 
             return [.. compressReports];

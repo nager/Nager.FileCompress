@@ -41,7 +41,7 @@
             get
             {
                 if (SourceSize == 0) return 0;
-                return Math.Round((double)Savings / SourceSize * 100, 2);
+                return Math.Round((double)this.Savings / this.SourceSize * 100, 2);
             }
         }
 
