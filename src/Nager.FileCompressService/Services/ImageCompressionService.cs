@@ -69,15 +69,10 @@ namespace Nager.FileCompressService.Services
                 compressReports.AddRange(compressSummaryDirectory);
             }
 
-            if (currentDepth == 1)
+            if (currentDepth <= 2)
             {
                 foreach (var compressSummaryReport in compressReports)
                 {
-                    if (compressSummaryReport.TotalSavingsPercentage <= 20)
-                    {
-                        continue;
-                    }
-
                     this._logger.LogInformation($"{compressSummaryReport.CompressDescription} - {compressSummaryReport.Path} - possible saving {FileSizeHelper.FormatBytes(compressSummaryReport.TotalSavingsSize)} [{compressSummaryReport.TotalSavingsPercentage}%]");
                 }
             }
@@ -146,7 +141,6 @@ namespace Nager.FileCompressService.Services
         {
             try
             {
-
                 var directoryPath = Path.GetDirectoryName(filePath);
                 if (string.IsNullOrWhiteSpace(directoryPath))
                 {
