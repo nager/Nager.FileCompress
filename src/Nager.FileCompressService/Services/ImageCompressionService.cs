@@ -86,17 +86,17 @@ namespace Nager.FileCompressService.Services
         }
 
         private async Task<CompressSummary[]> ProcessFilesAsync(
-            string directory,
+            string directoryPath,
             string[] fileExtensions,
             CancellationToken cancellationToken = default)
         {
-            this._logger.LogDebug($"Process - {directory}");
+            this._logger.LogDebug("{Method} - Process - {DirectoryPath}", nameof(ProcessFilesAsync), directoryPath);
 
             var maxDegreeOfParallelism = this._options.MaxDegreeOfParallelism == 0 ? Environment.ProcessorCount : this._options.MaxDegreeOfParallelism;
             var fileReports = new ConcurrentBag<FileReport>();
 
             await Parallel.ForEachAsync(
-                Directory.EnumerateFiles(directory, "*", this._enumerationOptions)
+                Directory.EnumerateFiles(directoryPath, "*", this._enumerationOptions)
                 .Where(file => fileExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase)),
                 new ParallelOptions
                 {
@@ -119,7 +119,7 @@ namespace Nager.FileCompressService.Services
                 .GroupBy(o => o.CompressDescription)
                 .Select(group => new CompressSummary
                 {
-                    Path = directory,
+                    Path = directoryPath,
                     CompressDescription = group.Key,
                     TotalSourceSize = group.Sum(r => r.SourceSize),
                     TotalCompressedSize = group.Sum(r => r.CompressedSize)
@@ -144,44 +144,114 @@ namespace Nager.FileCompressService.Services
             string filePath,
             CancellationToken cancellationToken)
         {
-            var directoryPath = Path.GetDirectoryName(filePath);
-            if (string.IsNullOrWhiteSpace(directoryPath))
+            try
             {
-                return new FileReport
+
+                var directoryPath = Path.GetDirectoryName(filePath);
+                if (string.IsNullOrWhiteSpace(directoryPath))
                 {
-                    FilePath = filePath
-                };
-            }
+                    return new FileReport
+                    {
+                        FilePath = filePath
+                    };
+                }
 
-            if (this._options.ImageOptimizer is null)
-            {
-                return new FileReport
+                if (this._options.ImageOptimizer is null)
                 {
-                    FilePath = filePath
-                };
-            }
+                    return new FileReport
+                    {
+                        FilePath = filePath
+                    };
+                }
 
-            var fileName = Path.GetFileNameWithoutExtension(filePath);
-            var outputFilePathWithoutExtension = Path.Combine(directoryPath, $"{fileName}");
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                var outputFilePathWithoutExtension = Path.Combine(directoryPath, $"{fileName}");
 
-            if (this._options.AnalyzeOnly)
-            {
-                var stopwatch = new Stopwatch();
+                if (this._options.AnalyzeOnly)
+                {
+                    var stopwatch = new Stopwatch();
 
-                stopwatch.Start();
+                    stopwatch.Start();
+
+                    if (this._options.ImageOptimizer.OutputFormat == "webp")
+                    {
+                        var compressResult = await this._imageOptimizer.CompressWebpAsync(
+                            filePath,
+                            $"{outputFilePathWithoutExtension}_analyzeonly.webp",
+                            quality: this._options.ImageOptimizer.Quality,
+                            analyzeOnly: true);
+
+                        stopwatch.Stop();
+                        var compressionTime = stopwatch.Elapsed.TotalMilliseconds;
+
+                        this._logger.LogDebug("{Method} - {FilePath}, webp compression time:{CompressionTime:0} ms", nameof(CompressFileAsync), filePath, compressionTime);
+
+                        return new FileReport
+                        {
+                            FilePath = filePath,
+                            CompressResults = [compressResult]
+                        };
+                    }
+                    else if (this._options.ImageOptimizer.OutputFormat == "jpeg")
+                    {
+                        var compressResult = await this._imageOptimizer.CompressJpegAsync(
+                            filePath,
+                            $"{outputFilePathWithoutExtension}_analyzeonly.jpg",
+                            quality: this._options.ImageOptimizer.Quality,
+                            analyzeOnly: true);
+
+                        stopwatch.Stop();
+                        var compressionTime = stopwatch.Elapsed.TotalMilliseconds;
+
+                        this._logger.LogDebug("{Method} - {FilePath}, jpeg compression time:{CompressionTime:0} ms", nameof(CompressFileAsync), filePath, compressionTime);
+
+                        return new FileReport
+                        {
+                            FilePath = filePath,
+                            CompressResults = [compressResult]
+                        };
+                    }
+
+                    return new FileReport
+                    {
+                        FilePath = filePath
+                    };
+                }
+
+                if (await this._fileCompressionHistoryService.IsCompressedAsync(filePath, cancellationToken))
+                {
+                    return new FileReport
+                    {
+                        FilePath = filePath
+                    };
+                }
+
+                var optimizedSuffix = "_optimized";
 
                 if (this._options.ImageOptimizer.OutputFormat == "webp")
                 {
+                    var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.webp";
+
                     var compressResult = await this._imageOptimizer.CompressWebpAsync(
                         filePath,
-                        $"{outputFilePathWithoutExtension}_analyzeonly.webp",
+                        newImagePath,
                         quality: this._options.ImageOptimizer.Quality,
-                        analyzeOnly: true);
+                        analyzeOnly: this._options.AnalyzeOnly);
 
-                    stopwatch.Stop();
-                    var compressionTime = stopwatch.Elapsed.TotalMilliseconds;
+                    await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
+                    await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
 
-                    this._logger.LogDebug($"{filePath} - Webp compression time:{compressionTime:0} ms");
+                    if (this._options.ImageOptimizer.KeepOriginal == false)
+                    {
+                        File.Delete(filePath);
+
+                        var movePath = Path.Combine(
+                            Path.GetDirectoryName(newImagePath)!,
+                            fileName + Path.GetExtension(newImagePath)
+                        );
+
+                        File.Move(newImagePath, movePath);
+                    }
 
                     return new FileReport
                     {
@@ -191,105 +261,44 @@ namespace Nager.FileCompressService.Services
                 }
                 else if (this._options.ImageOptimizer.OutputFormat == "jpeg")
                 {
+                    var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.jpg";
+
                     var compressResult = await this._imageOptimizer.CompressJpegAsync(
                         filePath,
-                        $"{outputFilePathWithoutExtension}_analyzeonly.jpg",
+                        newImagePath,
                         quality: this._options.ImageOptimizer.Quality,
-                        analyzeOnly: true);
+                        analyzeOnly: this._options.AnalyzeOnly);
 
-                    stopwatch.Stop();
-                    var compressionTime = stopwatch.Elapsed.TotalMilliseconds;
+                    await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
+                    await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
 
-                    this._logger.LogDebug($"{filePath} - Jpeg compression time:{compressionTime:0} ms");
+                    if (this._options.ImageOptimizer.KeepOriginal == false &&
+                        compressResult.NewFileCreated)
+                    {
+                        File.Delete(filePath);
+
+                        var movePath = Path.Combine(
+                            Path.GetDirectoryName(newImagePath)!,
+                            fileName + Path.GetExtension(newImagePath)
+                        );
+
+                        File.Move(newImagePath, movePath);
+                    }
 
                     return new FileReport
                     {
                         FilePath = filePath,
                         CompressResults = [compressResult]
                     };
-                }               
-
-                return new FileReport
-                {
-                    FilePath = filePath
-                };
-            }
-
-            if (await this._fileCompressionHistoryService.IsCompressedAsync(filePath, cancellationToken))
-            {
-                return new FileReport
-                {
-                    FilePath = filePath
-                };
-            }
-
-            var optimizedSuffix = "_optimized";
-
-            if (this._options.ImageOptimizer.OutputFormat == "webp")
-            {
-                var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.webp";
-
-                var compressResult = await this._imageOptimizer.CompressWebpAsync(
-                    filePath,
-                    newImagePath,
-                    quality: this._options.ImageOptimizer.Quality,
-                    analyzeOnly: this._options.AnalyzeOnly);
-
-                await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
-                await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
-
-                if (this._options.ImageOptimizer.KeepOriginal == false)
-                {
-                    File.Delete(filePath);
-
-                    var movePath = Path.Combine(
-                        Path.GetDirectoryName(newImagePath)!,
-                        fileName + Path.GetExtension(newImagePath)
-                    );
-
-                    File.Move(newImagePath, movePath);
                 }
 
-                return new FileReport
-                {
-                    FilePath = filePath,
-                    CompressResults = [compressResult]
-                };
+                return new FileReport { FilePath = filePath };
             }
-            else if (this._options.ImageOptimizer.OutputFormat == "jpeg")
+            catch (Exception exception)
             {
-                var newImagePath = $"{outputFilePathWithoutExtension}{optimizedSuffix}.jpg";
-
-                var compressResult = await this._imageOptimizer.CompressJpegAsync(
-                    filePath,
-                    newImagePath,
-                    quality: this._options.ImageOptimizer.Quality,
-                    analyzeOnly: this._options.AnalyzeOnly);
-
-                await this._fileCompressionHistoryService.MarkAsCompressedAsync(filePath, cancellationToken);
-                await this._fileCompressionHistoryService.MarkAsCompressedAsync(newImagePath, cancellationToken);
-
-                if (this._options.ImageOptimizer.KeepOriginal == false &&
-                    compressResult.NewFileCreated)
-                {
-                    File.Delete(filePath);
-
-                    var movePath = Path.Combine(
-                        Path.GetDirectoryName(newImagePath)!,
-                        fileName + Path.GetExtension(newImagePath)
-                    );
-
-                    File.Move(newImagePath, movePath);
-                }
-
-                return new FileReport
-                {
-                    FilePath = filePath,
-                    CompressResults = [compressResult]
-                };
+                this._logger.LogError(exception, "{Method} - Error process image, path:{FilePath}", nameof(CompressFileAsync), filePath);
+                return new FileReport { FilePath = filePath };
             }
-
-            return new FileReport { FilePath = filePath };
         }
     }
 }
